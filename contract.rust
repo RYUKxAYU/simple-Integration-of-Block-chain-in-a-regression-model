@@ -1,0 +1,45 @@
+use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+};
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct RegressionData {
+    pub input_data: Vec<f64>,
+    pub prediction: f64,
+}
+
+entrypoint!(process_instruction);
+
+fn process_instruction(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let account = next_account_info(accounts_iter)?;
+
+    if account.is_signer {
+        let mut data = account.try_borrow_mut_data()?;
+        
+        let regression_data = RegressionData::try_from_slice(instruction_data)
+            .map_err(|_| ProgramError::InvalidInstructionData)?;
+
+        data[..instruction_data.len()].copy_from_slice(&instruction_data);
+
+        msg!(
+            "Stored data: input = {:?}, prediction = {}",
+            regression_data.input_data,
+            regression_data.prediction
+        );
+
+        Ok(())
+    } else {
+        Err(ProgramError::MissingRequiredSignature)
+    }
+}
