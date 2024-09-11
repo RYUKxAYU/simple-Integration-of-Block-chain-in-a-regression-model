@@ -1,118 +1,110 @@
-# Linear Regression with Blockchain
-This project demonstrates the integration of a simple linear regression model with blockchain technology. The goal is to use blockchain to securely store the predictions made by the linear regression model.
+# Blockchain-Integrated Regression Model with Solana and TensorFlow
 
-# Installation
-install the required libraries, run the following command:
+## Overview
 
-pip install sklearn numpy matplotlib
+This project demonstrates the integration of blockchain technology with a machine learning regression model. By leveraging Solana's decentralized blockchain infrastructure and TensorFlow's machine learning capabilities, this project ensures data security, transparency, and tamper-proof predictive analytics.
+
+## Features
+
+- **Decentralized Storage:** Utilize Solana blockchain to store and retrieve predictive analytics data, ensuring immutability and transparency.
+- **Machine Learning:** Implement a regression model using TensorFlow and Python to perform predictive analysis.
+- **Security:** The integration ensures that predictions and data are securely stored on the blockchain, creating a robust and tamper-proof environment for data analysis.
+
+## Prerequisites
+
+- **Rust** (for writing and deploying Solana smart contracts)
+- **Solana CLI** (for interacting with the Solana blockchain)
+- **Python 3.7+** (for machine learning tasks and interacting with the Solana blockchain)
+- **TensorFlow** (for building and training the regression model)
+
+## Installation
+
+### 1. Set Up Solana Environment
+
+1. **Install Rust:**
+
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+## Install Solana CLI:
+
+Follow the installation instructions from the official Solana documentation.
+
+### Set up a new Solana program:
+
+```bash
+ cargo new --lib my_solana_project
+cd my_solana_project
+```
+### Set Up Python Environment
+Install Python:
+Download and install Python 3.7+ from python.org.
+
+Install Required Python Packages:
+
+```bash
+Copy code
+pip install solana borsh-construct tensorflow numpy
+```
+
+### Set Up Solana Wallet:
+
+```bash
+solana-keygen new
+solana config set --keypair /path/to/your/keypair.json
+```
+
+Fund your wallet using a Solana faucet if you're on the devnet.
+
 ## Usage
-The script trains a linear regression model on a sample dataset, makes predictions, and stores the predictions in a blockchain. Follow these steps to execute the script:
+### 1. Write and Deploy the Solana Smart Contract
+Write the Smart Contract:
 
-### Import necessary libraries:
+Replace the contents of ```src/lib.rs``` with the smart contract provided in the ```solana_contract``` folder.
 
-import hashlib
-import json
-from datetime import datetime
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+Build and Deploy:
 
-### Define the Block class:
+Build and deploy your Solana program:
 
-    class Block:
-    def __init__(self, index, timestamp, data, previous_hash):
-        self.index = index
-        self.timestamp = timestamp
-        self.data = data
-        self.previous_hash = previous_hash
-        self.hash = self.calculate_hash()
+```bash
+cargo build-bpf --release
+solana program deploy target/deploy/my_solana_project.so
+```
+Take note of the program ID returned after deployment.
 
-    def calculate_hash(self):
-        block_string = json.dumps(self.__dict__, sort_keys=True)
-        return hashlib.sha256(block_string.encode()).hexdigest()
-        
-### Define the Blockchain class:
+### 2. Run the Python Script
+Train the Regression Model:
 
-    class Blockchain:
-          def __init__(self):
-                 self.chain = [self.create_genesis_block()]
+Implement and train your TensorFlow regression model in Python.
 
-    def create_genesis_block(self):
-        return Block(0, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Genesis Block", "0")
+Store Predictions on Blockchain:
 
-    def get_latest_block(self):
-        return self.chain[-1]
+Use the provided Python script (run_model.py) to interact with the Solana blockchain and store the predictions securely.
 
-    def add_block(self, new_block):
-        new_block.previous_hash = self.get_latest_block().hash
-        new_block.hash = new_block.calculate_hash()
-        self.chain.append(new_block)
-        
-### Create dataset and train model:
+```bash
+python run_model.py
+```
+Monitor Transactions:
 
-    def create_dataset():
-    X = np.array([[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]])
-    y = np.array([2, 4, 5, 4, 5, 6, 7, 8, 8, 9])
-    return X, y
+Check the transaction on Solana's devnet explorer to ensure that the data has been recorded.
+```
+Project Structure
+plaintext
+Copy code
+├── solana_contract
+│   ├── Cargo.toml
+│   ├── src
+│   │   └── lib.rs
+│   └── target
+│       └── deploy
+│           └── my_solana_project.so
+├── run_model.py
+├── README.md
+└── .gitignore
+```
+### Extra
+Local Testing: You can run a local Solana validator for testing without deploying to the devnet.
 
-    def train_model(X, y):
-    model = LinearRegression()
-    model.fit(X, y)
-    return model
-
-    def make_prediction(model, X):
-    return model.predict(X)
-
-# Create and train the model
-    X, y = create_dataset()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    model = train_model(X_train, y_train)
-### Initialize blockchain and make predictions:
-
-
-# Initialize blockchain
-blockchain = Blockchain()
-
-## Make predictions and add to blockchain
-    predictions = []
-    for i in range(len(X_test)):
-    prediction = make_prediction(model, X_test[i].reshape(1, -1))[0]
-    data = {
-        "input": float(X_test[i][0]),
-        "actual": float(y_test[i]),
-        "prediction": float(prediction)
-    }
-    new_block = Block(len(blockchain.chain), datetime.now().strftime("%Y-%m-%d %H:%M:%S"), data, blockchain.get_latest_block().hash)
-    blockchain.add_block(new_block)
-    predictions.append(prediction)
-
-
-### Print the blockchain
-    for block in blockchain.chain:
-    print(f"Block #{block.index}")
-    print(f"Timestamp: {block.timestamp}")
-    print(f"Data: {block.data}")
-    print(f"Hash: {block.hash}")
-    print(f"Previous Hash: {block.previous_hash}")
-    print("\n")
-    
-### Visualize the results:
-
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='blue', label='Data points')
-    plt.plot(X, model.predict(X), color='red', label='Regression line')
-    plt.scatter(X_test, predictions, color='green', label='Predictions')
-    plt.xlabel('X')
-    plt.ylabel('y')
-    plt.title('Linear Regression with Blockchain-stored Predictions')
-    plt.legend()
-    plt.show()
-# Conclusion
-This project integrates blockchain with a linear regression model to securely store and visualize predictions. The blockchain ensures the integrity and immutability of the prediction data.
-
-
-
-
-
-
+```bash
+solana-test-validator
+```
+Deployment on Mainnet: After testing, consider deploying to the Solana mainnet for a live environment.
